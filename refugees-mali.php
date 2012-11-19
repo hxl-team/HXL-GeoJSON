@@ -1,5 +1,10 @@
 <?php
-header('Content-type: application/json');
+if(isset($_GET['callback'])){
+  header('Content-Type: application/javascript');  
+}else{
+  header('Content-type: application/json');
+}
+
 
 include_once('lib/geoPHP/geoPHP.inc');
 include_once('lib/sparqllib/sparqllib.php');
@@ -31,7 +36,14 @@ if ($queryResult->num_rows() == 0){
   echo 'no result';
   die();
 } else {
-  $return = '{
+
+  $return = '';
+
+  if(isset($_GET['callback'])){
+    $return = $_GET['callback'].'(';    
+  }
+
+  $return .= '{
   "type": "FeatureCollection",
   "features": [
      ';
@@ -53,6 +65,10 @@ if ($queryResult->num_rows() == 0){
     $return .= '
   ]
 }';
+
+if(isset($_GET['callback'])){
+    $return .= ');';    
+  }
 }
 echo $return;
 

@@ -5,7 +5,6 @@ if(isset($_GET['callback'])){
   header('Content-type: application/json');
 }
 
-
 include_once('lib/geoPHP/geoPHP.inc');
 include_once('lib/sparqllib/sparqllib.php');
 
@@ -90,26 +89,6 @@ function getQueryResults($query){
     }
   return $result;
 }
-
-
-
-
-// {
-//   "type": "FeatureCollection",
-//   "features": [
-//     {
-//       "type": "Feature",
-//       "geometry": {
-//         "type": "Point",
-//         "coordinates": [ 102, 0.5 ]
-//       },
-//       "properties": {
-//         "prop0": "value0"
-//       }
-//     }
-//   ]
-// }
-
 
 
   function wkt_to_json($wkt) {

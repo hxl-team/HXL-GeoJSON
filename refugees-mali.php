@@ -1,0 +1,104 @@
+<?php
+header('Content-type: application/json');
+
+include_once('lib/geoPHP/geoPHP.inc');
+include_once('lib/sparqllib/sparqllib.php');
+
+$query = "
+prefix ogc: <http://www.opengis.net/ont/geosparql#> 
+prefix hxl: <http://hxl.humanitarianresponse.info/ns/#>
+
+SELECT (MAX(?valid) as ?latest) ?location ?locationName ?wkt (SUM(?count) AS ?totalRefugees) WHERE {
+  
+  GRAPH ?g {
+    ?g hxl:aboutEmergency <http://hxl.humanitarianresponse.info/data/emergencies/mali2012test> ; 
+       hxl:validOn ?valid .
+    ?pop a hxl:RefugeesAsylumSeekers ; 
+           hxl:personCount ?count ;
+           hxl:atLocation  ?location .
+  }
+  ?location hxl:featureName ?locationName;
+            ogc:hasGeometry ?geom .
+  ?geom ogc:hasSerialization ?wkt .
+  
+} GROUP BY ?location ?locationName ?wkt ORDER BY ?locationName
+";
+
+
+$queryResult = getQueryResults($query);
+
+if ($queryResult->num_rows() == 0){
+  echo 'no result';
+  die();
+} else {
+  $return = '{
+  "type": "FeatureCollection",
+  "features": [
+     ';
+    // To extract coordinates from the polygon string.
+    while( $row = $queryResult->fetch_array() ){  
+
+        $return .= '{
+       "type": "Feature",
+       "geometry": '.wkt_to_json($row["wkt"]).',
+       "properties": {
+         "location": "'.$row["locationName"].'",
+         "personCount": "'.$row["totalRefugees"].'",
+         "date": "'.$row["latest"].'"
+       }
+     },';
+
+    } 
+    $return = substr($return, 0, -1); // remove trailing comma to make it valid JSON
+    $return .= '
+  ]
+}';
+}
+echo $return;
+
+
+function getQueryResults($query){
+   try {
+        $db = sparql_connect( "http://hxl.humanitarianresponse.info/sparql" );
+        
+        if( !$db ) {
+            print $db->errno() . ": " . $db->error(). "\n"; exit;
+        }
+        $result = $db->query($query);
+        if( !$result ) {
+            print $db->errno() . ": " . $db->error(). "\n"; exit;
+        }
+
+    } catch (Exception $e) {
+        echo 'Caught exception: ',  $e->getMessage(), "\n";
+    }
+  return $result;
+}
+
+
+
+
+// {
+//   "type": "FeatureCollection",
+//   "features": [
+//     {
+//       "type": "Feature",
+//       "geometry": {
+//         "type": "Point",
+//         "coordinates": [ 102, 0.5 ]
+//       },
+//       "properties": {
+//         "prop0": "value0"
+//       }
+//     }
+//   ]
+// }
+
+
+
+  function wkt_to_json($wkt) {
+    $geom = geoPHP::load($wkt,'wkt');
+    return $geom->out('json');
+  }
+
+?>

@@ -53,8 +53,9 @@ if ($queryResult->num_rows() == 0){
        "type": "Feature",
        "geometry": '.wkt_to_json($row["wkt"]).',
        "properties": {
-         "location": "'.$row["locationName"].'",
+         "name": "'.$row["locationName"].'",
          "personCount": "'.$row["totalRefugees"].'",
+         "description": "'.$row["totalRefugees"].' refugees",
          "date": "'.$row["latest"].'"
        }
      },';

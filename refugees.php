@@ -104,7 +104,7 @@ ORDER BY ?locationName DESC(?lvl)
              "description": "'.$row["totalRefugees"].' refugees",
              "date": "'.$row["latest"].'",
              "placeURI": "'.$row["unit"].'",
-              "radius": "'.$row["totalRefugees"] / $divider .'"
+              "radius": "'.ceil($row["totalRefugees"] / $divider) .'"
            }
          },';
 
@@ -187,7 +187,7 @@ function queryLowestLevel(){
             "description": "'.$row["totalRefugees"].' refugees",
             "date": "'.$row["latest"].'",
             "placeURI": "'.$row["location"].'",
-            "radius": "'.$row["totalRefugees"] / $divider .'"
+            "radius": "'.ceil($row["totalRefugees"] / $divider) .'"
            }
          },';
 

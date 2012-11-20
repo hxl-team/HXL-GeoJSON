@@ -15,6 +15,6 @@ Call the script with three arguments:
 # Sample Queries
 
 We have an instance of this script running at `http://hxl.humanitarianresponse.info/api/refugees.php`:
-* : This query will return the refugee counts for the Mali crisis (based on our test data) at APL and populated place level.
+* [http://hxl.humanitarianresponse.info/api/refugees.php?emergency=http://hxl.humanitarianresponse.info/data/emergencies/mali2012test](http://hxl.humanitarianresponse.info/api/refugees.php?emergency=http://hxl.humanitarianresponse.info/data/emergencies/mali2012test): This query will return the refugee counts for the Mali crisis (based on our test data) at APL and populated place level.
 
-* : This query will return the refugee counts for the Mali crisis (based on our test data) accumulated at admin level 1, wrapped in a callback function called `parseJSON`.
+* [http://hxl.humanitarianresponse.info/api/refugees.php?emergency=http://hxl.humanitarianresponse.info/data/emergencies/mali2012test&level=1&callback=parseJSON](http://hxl.humanitarianresponse.info/api/refugees.php?emergency=http://hxl.humanitarianresponse.info/data/emergencies/mali2012test&level=1&callback=parseJSON): This query will return the refugee counts for the Mali crisis (based on our test data) accumulated at admin level 1, wrapped in a callback function called `parseJSON`.

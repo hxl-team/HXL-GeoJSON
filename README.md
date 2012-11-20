@@ -1,6 +1,6 @@
 # HXL GeoJSON API
 
-A PHP script to export all refugee numbers at different levels of our administrative unit hierarchy for a given emergency.
+A PHP script to export all refugee numbers at different levels of our administrative unit hierarchy for a given emergency. The script will return point data (centroids in the case where the original geometry of a feature is complex), so that the data can be easily placed on top of a base map.
 
 # Quickstart
 
@@ -12,6 +12,9 @@ Call the script with three arguments:
 
 * **callback** - a callback function (optional). If a value for the callback parameter is passed to the script, it will wrap the GeoJSON encoding in a callback function to support [JSONP](http://en.wikipedia.org/wiki/JSONP) requests.
 
-# Sample Query
-TBD.
+# Sample Queries
 
+We have an instance of this script running at `http://hxl.humanitarianresponse.info/api/refugees.php`:
+* : This query will return the refugee counts for the Mali crisis (based on our test data) at APL and populated place level.
+
+* : This query will return the refugee counts for the Mali crisis (based on our test data) accumulated at admin level 1, wrapped in a callback function called `parseJSON`.

@@ -83,7 +83,16 @@ ORDER BY ?locationName DESC(?lvl)
       "type": "FeatureCollection",
       "features": [
          ';
-        // To extract coordinates from the polygon string.
+        
+        // produce a normalized radius ti inidcate the number of refugees on the map
+        while( $row = $queryResult->fetch_array() ){
+            $counts[] = $row['totalRefugees'];
+            $rows[] = $row;
+        }
+
+        $max = max($counts);
+        $divider = $max / 15;
+
         while( $row = $queryResult->fetch_array() ){  
 
             $return .= '{
@@ -94,7 +103,8 @@ ORDER BY ?locationName DESC(?lvl)
              "personCount": "'.$row["totalRefugees"].'",
              "description": "'.$row["totalRefugees"].' refugees",
              "date": "'.$row["latest"].'",
-             "placeURI": "'.$row["unit"].'"
+             "placeURI": "'.$row["unit"].'",
+              "radius": "'.$row["totalRefugees"] / $divider .'"
            }
          },';
 
@@ -154,18 +164,30 @@ function queryLowestLevel(){
       "type": "FeatureCollection",
       "features": [
          ';
-        // To extract coordinates from the polygon string.
+        
+
+         // produce a normalized radius ti inidcate the number of refugees on the map
+        while( $row = $queryResult->fetch_array() ){
+            $counts[] = $row['totalRefugees'];
+            $rows[] = $row;
+        }
+
+        $max = max($counts);
+        $divider = $max / 15;
+
+
         while( $row = $queryResult->fetch_array() ){  
 
             $return .= '{
            "type": "Feature",
            "geometry": '.wkt_to_json($row["wkt"]).',
            "properties": {
-             "name": "'.$row["locationName"].'",
-             "personCount": "'.$row["totalRefugees"].'",
-             "description": "'.$row["totalRefugees"].' refugees",
-             "date": "'.$row["latest"].'",
-             "placeURI": "'.$row["location"].'"
+            "name": "'.$row["locationName"].'",
+            "personCount": "'.$row["totalRefugees"].'",
+            "description": "'.$row["totalRefugees"].' refugees",
+            "date": "'.$row["latest"].'",
+            "placeURI": "'.$row["location"].'",
+            "radius": "'.$row["totalRefugees"] / $divider .'"
            }
          },';
 

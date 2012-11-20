@@ -93,7 +93,7 @@ ORDER BY ?locationName DESC(?lvl)
         $max = max($counts);
         $divider = $max / 15;
 
-        while( $row = $queryResult->fetch_array() ){  
+        foreach ( $rows AS $row ){  
 
             $return .= '{
            "type": "Feature",
@@ -176,7 +176,7 @@ function queryLowestLevel(){
         $divider = $max / 15;
 
 
-        while( $row = $queryResult->fetch_array() ){  
+        foreach ( $rows AS $row ){  
 
             $return .= '{
            "type": "Feature",

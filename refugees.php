@@ -30,40 +30,42 @@ if(!isset($_GET['emergency'])){
 function queryAtLevel(){
     $query="
 prefix ogc: <http://www.opengis.net/ont/geosparql#> 
-prefix hxl: <http://hxl.humanitarianresponse.info/ns/#>
+prefix hxl: <http://hxl.humanitarianresponse.info/ns/#> 
 
-SELECT 
+SELECT ?unitName ?unit ?wkt (SUM(?count) as ?total) WHERE {
 
-  (MAX(?valid) as ?latest) 
-  ?unit 
-  ?unitName 
-  ?wkt
-  (MAX(?lvl) as ?level) 
-  (SUM(?count) AS ?totalRefugees) 
-
-WHERE {
+    { SELECT DISTINCT ?pop (MAX(?valid) as ?latest) WHERE {
   
-  GRAPH ?g {
-    ?g hxl:aboutEmergency <".$_GET['emergency']."> ; 
-       hxl:validOn ?valid .
-    ?pop a hxl:RefugeesAsylumSeekers ; 
-           hxl:personCount ?count ;
-           hxl:atLocation  ?location .
-  }
-        
-  ?location hxl:atLocation+ ?unit .
+        GRAPH ?g {
+          ?g hxl:aboutEmergency <".$_GET['emergency']."> ; 
+             hxl:validOn ?valid .    
   
-  ?unit hxl:atLevel ?lvl ;
-    hxl:featureName ?unitName;
-        ogc:hasGeometry ?geom .
+          ?pop a hxl:RefugeesAsylumSeekers .
+        }
+                    
+    } GROUP BY ?pop }
+  
+  
+    GRAPH ?g2 {
+  
+        ?g2  hxl:validOn ?latest .
+      
+        ?pop hxl:personCount ?count ;
+             hxl:atLocation  ?location .
+    
+    }
+          
+    ?location hxl:atLocation+ ?unit .
+  
+    ?unit hxl:atLevel ?lvl ;
+          hxl:featureName ?unitName;
+          ogc:hasGeometry ?geom .
         
-  ?geom ogc:hasSerialization ?wkt .  
+    ?geom ogc:hasSerialization ?wkt .  
 
-  FILTER regex(str(?lvl), \"".$_GET["level"]."$\")
-} 
+    FILTER regex(str(?lvl), \"".$_GET["level"]."$\")
 
-GROUP BY ?unit ?unitName ?wkt ?level 
-ORDER BY ?locationName DESC(?lvl)
+} GROUP BY ?unit ?unitName ?wkt
 ";
 
     $queryResult = getQueryResults($query);
@@ -86,7 +88,7 @@ ORDER BY ?locationName DESC(?lvl)
         
         // produce a normalized radius ti inidcate the number of refugees on the map
         while( $row = $queryResult->fetch_array() ){
-            $counts[] = $row['totalRefugees'];
+            $counts[] = $row['total'];
             $rows[] = $row;
         }
 
@@ -100,11 +102,10 @@ ORDER BY ?locationName DESC(?lvl)
            "geometry": '.shrinkToPoint($row["wkt"]).',
            "properties": {
              "name": "'.$row["unitName"].'",
-             "personCount": "'.$row["totalRefugees"].'",
-             "description": "'.$row["totalRefugees"].' refugees",
-             "date": "'.$row["latest"].'",
+             "personCount": "'.$row["total"].'",
+             "description": "'.$row["total"].' refugees",
              "placeURI": "'.$row["unit"].'",
-              "radius": "'.ceil($row["totalRefugees"] / $divider) .'"
+              "radius": "'.ceil($row["total"] / $divider) .'"
            }
          },';
 
@@ -127,24 +128,58 @@ ORDER BY ?locationName DESC(?lvl)
 // retruning the numbers at the lowest level
 function queryLowestLevel(){
       $query = "
-    prefix ogc: <http://www.opengis.net/ont/geosparql#> 
-    prefix hxl: <http://hxl.humanitarianresponse.info/ns/#>
+prefix ogc: <http://www.opengis.net/ont/geosparql#> 
+prefix hxl: <http://hxl.humanitarianresponse.info/ns/#> 
 
-    SELECT (MAX(?valid) as ?latest) ?location ?locationName ?wkt (SUM(?count) AS ?totalRefugees) WHERE {
+SELECT ?locationName ?location ?wkt (SUM(?count) as ?total) WHERE {
+
+    { SELECT DISTINCT ?pop (MAX(?valid) as ?latest) WHERE {
+  
+        GRAPH ?g {
+          ?g hxl:aboutEmergency <".$_GET['emergency']."> ; 
+             hxl:validOn ?valid .    
+  
+          ?pop a hxl:RefugeesAsylumSeekers .
+        }
+                    
+    } GROUP BY ?pop }
+  
+  
+    GRAPH ?g2 {
+  
+        ?g2  hxl:validOn ?latest .
       
-      GRAPH ?g {
-        ?g hxl:aboutEmergency <".$_GET['emergency']."> ; 
-           hxl:validOn ?valid .
-        ?pop a hxl:RefugeesAsylumSeekers ; 
-               hxl:personCount ?count ;
-               hxl:atLocation  ?location .
-      }
-      ?location hxl:featureName ?locationName;
+        ?pop hxl:personCount ?count ;
+             hxl:atLocation  ?location .
+    
+    }
+          
+    ?location hxl:featureName ?locationName;
                 ogc:hasGeometry ?geom .
       ?geom ogc:hasSerialization ?wkt .
       
-    } GROUP BY ?location ?locationName ?wkt ORDER BY ?locationName
-    ";
+
+} GROUP BY ?location ?locationName ?wkt ORDER BY  ?locationName";
+
+
+    // prefix ogc: <http://www.opengis.net/ont/geosparql#> 
+    // prefix hxl: <http://hxl.humanitarianresponse.info/ns/#>
+
+    // SELECT (MAX(?valid) as ?latest) ?location ?locationName ?wkt (SUM(?count) AS ?totalRefugees) WHERE {
+      
+    //   GRAPH ?g {
+    //     ?g hxl:aboutEmergency <".$_GET['emergency']."> ; 
+    //        hxl:validOn ?valid .
+    //     ?pop a hxl:RefugeesAsylumSeekers ; 
+    //            hxl:personCount ?count ;
+    //            hxl:atLocation  ?location .
+    //   }
+    //   ?location hxl:featureName ?locationName;
+    //             ogc:hasGeometry ?geom .
+    //   ?geom ogc:hasSerialization ?wkt .
+      
+    // } GROUP BY ?location ?locationName ?wkt ORDER BY ?locationName
+    // ";
 
 
     $queryResult = getQueryResults($query);
@@ -168,7 +203,7 @@ function queryLowestLevel(){
 
          // produce a normalized radius ti inidcate the number of refugees on the map
         while( $row = $queryResult->fetch_array() ){
-            $counts[] = $row['totalRefugees'];
+            $counts[] = $row['total'];
             $rows[] = $row;
         }
 
@@ -183,11 +218,10 @@ function queryLowestLevel(){
            "geometry": '.wkt_to_json($row["wkt"]).',
            "properties": {
             "name": "'.$row["locationName"].'",
-            "personCount": "'.$row["totalRefugees"].'",
-            "description": "'.$row["totalRefugees"].' refugees",
-            "date": "'.$row["latest"].'",
+            "personCount": "'.$row["total"].'",
+            "description": "'.$row["total"].' refugees",
             "placeURI": "'.$row["location"].'",
-            "radius": "'.ceil($row["totalRefugees"] / $divider) .'"
+            "radius": "'.ceil($row["total"] / $divider) .'"
            }
          },';
 
